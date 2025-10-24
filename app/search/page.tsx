@@ -1011,13 +1011,43 @@ export default function SearchPage() {
       <Navbar />
       <main className="min-h-screen bg-[rgb(248,250,252)] px-4 pb-16 pt-[97px]">
         <div className="mx-auto max-w-6xl">
-          {/* Back link */}
-          <Link
-            href="/"
-            className="mb-6 inline-flex items-center gap-2 text-base text-gray-500 hover:text-gray-700"
-          >
-            <span aria-hidden className="text-xl">←</span> Volver al inicio
-          </Link>
+          {/* Back link - hide when user is authenticated */}
+          {/* Storage holds auth state (isAuthenticated, user) */}
+          {/* Only show the back link when NOT authenticated */}
+          {/* This page is client-side, so it's safe to read local storage here */}
+          
+          {(() => {
+            // lazy client-side check to avoid SSR/localStorage issues
+            // keep the function component simple and self-contained
+            const { useEffect, useState } = require("react");
+            const { storage } = require("@/lib/storage");
+
+            function BackLink() {
+              const [auth, setAuth] = useState(() => ({ isAuthenticated: false, user: null }));
+
+              useEffect(() => {
+                try {
+                  const a = storage.getAuth();
+                  setAuth(a);
+                } catch (e) {
+                  // ignore if running in non-browser environment briefly
+                }
+              }, []);
+
+              if (auth?.isAuthenticated) return null;
+
+              return (
+                <Link
+                  href="/"
+                  className="mb-6 inline-flex items-center gap-2 text-base text-gray-500 hover:text-gray-700"
+                >
+                  <span aria-hidden className="text-xl">←</span> Volver al inicio
+                </Link>
+              );
+            }
+
+            return <BackLink />;
+          })()}
 
           <header className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Buscar profesionales</h1>
